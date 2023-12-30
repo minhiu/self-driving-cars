@@ -12,8 +12,17 @@ class GraphEditor {
 
   _addEventListeners() {
     this.canvas.addEventListener("mousedown", (e) => {
+      // Right click
+      if (e.button === 2) {
+        e.preventDefault();
+        if (this.hovered) {
+          this.graph.removePoint(this.hovered);
+        }
+        return;
+      }
+
+      // Left click
       const mouse = new Point(e.offsetX, e.offsetY);
-      this.hovered = getNearestPoint(mouse, this.graph.points, 18);
       if (this.hovered) {
         this.selected = this.hovered;
         return;
