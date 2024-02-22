@@ -1,14 +1,17 @@
 class GraphEditor {
-  constructor(canvas, graph) {
-    this.canvas = canvas;
+  constructor(viewport, graph) {
+    this.viewport = viewport;
+    this.canvas = viewport.canvas;
     this.graph = graph;
 
     this.hovered = null;
     this.selected = null;
-    this.dragging = false;
 
-    this.selectedTemp = null;
-    this.dragged = false;
+    this.drag = {
+      start: null,
+      end: null,
+      active: false,
+    };
 
     this.ctx = this.canvas.getContext("2d");
     this._addEventListeners();
@@ -19,8 +22,19 @@ class GraphEditor {
     this.canvas.addEventListener("mousemove", this._handleMouseMove.bind(this));
     this.canvas.addEventListener("contextmenu", (e) => e.preventDefault());
     this.canvas.addEventListener("mouseup", () => {
-      this.dragging = false;
-      this.dragged && (this.selected = null);
+      this.drag.active = false;
+      // Don't select a point that was dragged
+      if (
+        this.drag.start &&
+        this.drag.end &&
+        !this.drag.start.equals(this.drag.end)
+      ) {
+        this.selected = null;
+        this.drag = {
+          start: null,
+          end: null,
+        };
+      }
     });
   }
 
@@ -38,9 +52,8 @@ class GraphEditor {
     if (e.button === 0) {
       if (this.hovered) {
         this._selectPoint(this.hovered);
-        this.dragging = true;
-        this.dragged = false;
-        this.selectedTemp = new Point(this.selected.x, this.selected.y);
+        this.drag.active = true;
+        this.drag.start = new Point(this.hovered.x, this.hovered.y);
         return;
       }
       this.graph.addPoint(this.mouse);
@@ -51,12 +64,12 @@ class GraphEditor {
   }
 
   _handleMouseMove(e) {
-    this.mouse = new Point(e.offsetX, e.offsetY);
+    this.mouse = this.viewport.getMouse(e);
     this.hovered = getNearestPoint(this.mouse, this.graph.points, 18);
-    if (this.dragging === true) {
+    if (this.drag.active === true) {
       this.selected.x = this.mouse.x;
       this.selected.y = this.mouse.y;
-      !this.selectedTemp.equals(this.selected) && (this.dragged = true);
+      this.drag.end = new Point(this.selected.x, this.selected.y);
     }
   }
 
