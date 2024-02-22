@@ -7,15 +7,21 @@ class GraphEditor {
     this.selected = null;
     this.dragging = false;
 
+    this.selectedTemp = null;
+    this.dragged = false;
+
     this.ctx = this.canvas.getContext("2d");
     this._addEventListeners();
   }
 
   _addEventListeners() {
     this.canvas.addEventListener("mousedown", this._handleMouseDown.bind(this));
-    this.canvas.addEventListener("mousemove", this._handleMouseMove(this));
+    this.canvas.addEventListener("mousemove", this._handleMouseMove.bind(this));
     this.canvas.addEventListener("contextmenu", (e) => e.preventDefault());
-    this.canvas.addEventListener("mouseup", (e) => (this.dragging = false));
+    this.canvas.addEventListener("mouseup", () => {
+      this.dragging = false;
+      this.dragged && (this.selected = null);
+    });
   }
 
   _handleMouseDown(e) {
@@ -33,12 +39,13 @@ class GraphEditor {
       if (this.hovered) {
         this._selectPoint(this.hovered);
         this.dragging = true;
+        this.dragged = false;
+        this.selectedTemp = new Point(this.selected.x, this.selected.y);
         return;
       }
       this.graph.addPoint(this.mouse);
 
       this._selectPoint(this.mouse);
-      this.selected = this.mouse;
       this.hovered = this.mouse;
     }
   }
@@ -49,6 +56,7 @@ class GraphEditor {
     if (this.dragging === true) {
       this.selected.x = this.mouse.x;
       this.selected.y = this.mouse.y;
+      !this.selectedTemp.equals(this.selected) && (this.dragged = true);
     }
   }
 
