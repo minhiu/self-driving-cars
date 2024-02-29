@@ -11,10 +11,35 @@ class GraphEditor {
       start: null,
       end: null,
       active: false,
+      reset: () => {
+        this.drag.start = null;
+        this.drag.end = null;
+        this.drag.active = false;
+      },
     };
 
     this.ctx = this.canvas.getContext("2d");
     this._addEventListeners();
+  }
+
+  display() {
+    this.graph.draw(this.ctx);
+    if (this.hovered) {
+      this.hovered.draw(this.ctx, { fill: true });
+    }
+
+    if (this.selected) {
+      const intent = this.hovered || this.mouse;
+      new Segment(this.selected, intent).draw(ctx, { dash: [3, 3] });
+      this.selected.draw(this.ctx, { outline: true });
+    }
+  }
+
+  dispose() {
+    this.graph.dispose();
+    this.selected = null;
+    this.hovered = null;
+    this.drag.reset();
   }
 
   _addEventListeners() {
@@ -30,10 +55,7 @@ class GraphEditor {
         !this.drag.start.equals(this.drag.end)
       ) {
         this.selected = null;
-        this.drag = {
-          start: null,
-          end: null,
-        };
+        this.drag.reset();
       }
     });
   }
@@ -64,7 +86,7 @@ class GraphEditor {
   }
 
   _handleMouseMove(e) {
-    this.mouse = this.viewport.getMouse(e);
+    this.mouse = this.viewport.getMouse(e, true);
     this.hovered = getNearestPoint(this.mouse, this.graph.points, 18);
     if (this.drag.active === true) {
       this.selected.x = this.mouse.x;
@@ -83,18 +105,5 @@ class GraphEditor {
     this.graph.removePoint(point);
     this.hovered = null;
     point === this.selected && (this.selected = null);
-  }
-
-  display() {
-    this.graph.draw(this.ctx);
-    if (this.hovered) {
-      this.hovered.draw(this.ctx, { fill: true });
-    }
-
-    if (this.selected) {
-      const intent = this.hovered || this.mouse;
-      new Segment(this.selected, intent).draw(ctx, { dash: [3, 3] });
-      this.selected.draw(this.ctx, { outline: true });
-    }
   }
 }
