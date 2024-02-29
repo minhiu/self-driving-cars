@@ -21,7 +21,9 @@
     <script src="js/viewport.js"></script>
     <script src="js/math/utils.js"></script>
     <script src="js/math/graph.js"></script>
+    <script src="js/primitive/envelope.js"></script>
     <script src="js/primitive/point.js"></script>
+    <script src="js/primitive/polygon.js"></script>
     <script src="js/primitive/segment.js"></script>
     <script>
       myCanvas.width = 600;
@@ -40,6 +42,7 @@
       function animate() {
         viewport.reset();
         graphEditor.display();
+        new Envelope(graph.segments[0], 80).draw(ctx);
         requestAnimationFrame(animate);
       }
 
